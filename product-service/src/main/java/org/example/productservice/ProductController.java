@@ -11,7 +11,7 @@ import java.util.Map;
 public class ProductController {
 
     @GetMapping("/products/{id}")
-    public Map<String, Object> getProductById(@PathVariable Long id) {
+    public Map<String, Object> getProductById(@PathVariable("id") Long id) {
         Map<String, Object> product = new HashMap<>();
         product.put("id", id);
         product.put("name", "apple mac pro 2T");

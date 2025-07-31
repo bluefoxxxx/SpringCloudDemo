@@ -12,7 +12,7 @@ import java.util.Map;
 public class OrderController {
 
     @GetMapping("/orders/{id}")
-    public Map<String, Object> getOrderById(@PathVariable Long id) {
+    public Map<String, Object> getOrderById(@PathVariable("id") Long id) {
         Map<String, Object> order = new HashMap<>();
         order.put("id", id);
         order.put("userId", 1L);
