@@ -7,3 +7,12 @@ spring:
         server-addr: 127.0.0.1:8848
 server:
   port: 9003
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # ??????1.0??100%??
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}] %-40.40logger{39} : %m%n"

@@ -11,7 +11,7 @@ import java.util.Map;
 public class UserController {
 
     @GetMapping("/users/{id}")
-    public Map<String, Object> getUserById(@PathVariable Long id) {
+    public Map<String, Object> getUserById(@PathVariable("id") Long id) {
         Map<String, Object> user = new HashMap<>();
         user.put("id", id);
         user.put("name", "张三");

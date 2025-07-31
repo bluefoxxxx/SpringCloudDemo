@@ -8,3 +8,11 @@ spring:
 server:
   port: 9001
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # 设置采样率为1.0，即100%追踪
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}] %-40.40logger{39} : %m%n"
