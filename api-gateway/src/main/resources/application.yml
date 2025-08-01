@@ -25,6 +25,24 @@ spring:
               filters: # 过滤器，在转发前后对请求进行处理
                 # 剥离路径的第一部分(/api)，因为下游服务Controller的路径是从/orders/开始的
                 - StripPrefix=1
+            # 规则二：用户服务 v1 (90%流量)
+            - id: user_route_v1
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/{id}
+                - Weight=user_group, 90 # 权重断言，组名为user_group，权重为90
+              filters:
+                - StripPrefix=1
+            # 规则三：用户服务 v2 (10%流量)
+            - id: user_route_v2
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/{id}
+                - Weight=user_group, 10 # 权重断言，与上面属于同一组，权重为10
+              filters:
+                - StripPrefix=1
+                # 关键：路径重写过滤器，将 /users/{id} 重写为 /v2/users/{id}
+                - RewritePath=/users/(?<segment>.*), /v2/users/$\{segment}
   # 配置Redis地址，用于限流
   data:
     redis:

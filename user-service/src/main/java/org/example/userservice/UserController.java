@@ -36,4 +36,17 @@ public class UserController {
         user.put("level", "黄金会员");
         return user;
     }
+
+    // 新增 v2 接口
+    @GetMapping("/v2/users/{id}")
+    public Map<String, Object> getUserByIdV2(@PathVariable("id") Long id) {
+        log.info("V2 - 成功接收到获取用户信息的请求, 用户ID: {}", id);
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("userId", id);
+        user.put("username", "张三(VIP)");
+        user.put("membershipLevel", "PLATINUM");
+        user.put("version", "v2");
+        return user;
+    }
 }
