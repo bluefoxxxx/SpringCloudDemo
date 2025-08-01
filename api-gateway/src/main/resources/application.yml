@@ -54,8 +54,9 @@ spring:
   # 配置Redis地址，用于限流
   data:
     redis:
-      host: localhost
+      host: 192.168.220.128
       port: 6379
+      password: 1234
 
 # 配置日志级别，方便观察路由详情
 logging:
