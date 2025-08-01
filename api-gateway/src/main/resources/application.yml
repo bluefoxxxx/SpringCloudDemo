@@ -25,6 +25,14 @@ spring:
               filters: # 过滤器，在转发前后对请求进行处理
                 # 剥离路径的第一部分(/api)，因为下游服务Controller的路径是从/orders/开始的
                 - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    # 使用自定义的 Bean
+                    key-resolver: '#{@ipKeyResolver}'
+                    # 令牌桶每秒填充速率
+                    redis-rate-limiter.replenishRate: 1
+                    # 令牌桶总容量
+                    redis-rate-limiter.burstCapacity: 1
             # 规则二：用户服务 v1 (90%流量)
             - id: user_route_v1
               uri: lb://user-service
