@@ -16,6 +16,15 @@ spring:
             locator:
               enabled: true
               lower-case-service-id: true
+          routes:
+            # 规则一：订单服务路由
+            - id: order_route # 路由的唯一ID
+              uri: lb://order-service # lb:// 表示启用负载均衡，并从Nacos中寻找名为 "order-service" 的服务
+              predicates: # 断言，即满足什么条件才会转发到此路由
+                - Path=/api/orders/** # 匹配所有以 /api/orders/ 开头的路径
+              filters: # 过滤器，在转发前后对请求进行处理
+                # 剥离路径的第一部分(/api)，因为下游服务Controller的路径是从/orders/开始的
+                - StripPrefix=1
   # 配置Redis地址，用于限流
   data:
     redis:
