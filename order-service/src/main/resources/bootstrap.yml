@@ -1,0 +1,29 @@
+spring:
+  application:
+    # 应用名称，Nacos Config 会根据这个名字去查找对应的配置文件
+    name: order-service
+  cloud:
+    nacos:
+      # Nacos Server 的地址
+      server-addr: 127.0.0.1:8848
+      config:
+        # 文件扩展名
+        file-extension: yaml
+        # 当前环境 (通过启动参数 -Dspring.profiles.active=dev 来激活)
+        group: ${spring.profiles.active}
+        # Nacos 命名空间 (从 application-${profile}.yml 中读取)
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+
+        # ======== 共享配置加载 ========
+        shared-configs:
+          # 第一个共享配置
+          - data-id: shared-${spring.profiles.active}.yaml # data-id 对应 Nacos 中的文件名
+            group: ${spring.profiles.active} # 配置文件所属的分组
+            refresh: true # 开启动态刷新
+
+        # ======== 扩展配置加载（应用专属）========
+        extension-configs:
+          # 第一个扩展配置
+          - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
+            group: ${spring.profiles.active}
+            refresh: true
