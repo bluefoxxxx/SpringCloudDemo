@@ -80,6 +80,12 @@
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
                 <version>${nacos-discovery.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.alibaba.nacos</groupId>
+                        <artifactId>nacos-logback-adapter</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

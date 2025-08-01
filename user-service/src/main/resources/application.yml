@@ -9,6 +9,9 @@ server:
   port: 9001
 
 management:
+  zipkin:
+    tracing:
+      endpoint: http://192.168.220.128:9411/api/v2/spans
   tracing:
     sampling:
       probability: 1.0 # 设置采样率为1.0，即100%追踪

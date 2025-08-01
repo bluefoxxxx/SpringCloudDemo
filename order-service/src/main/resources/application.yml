@@ -9,10 +9,22 @@ server:
   port: 9003
 
 management:
+  endpoints:
+    web:
+      exposure:
+        # actuator 提供的功能，暴露所有端点
+        include: "*"
+  zipkin:
+    tracing:
+      endpoint: http://192.168.220.128:9411/api/v2/spans
   tracing:
     sampling:
-      probability: 1.0 # ??????1.0??100%??
+      probability: 1.0 # 采样比率100%
 
+# ? MDC (Mapped Diagnostic Context) ???????????????? TraceID?????????? -?
 logging:
   pattern:
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}] %-40.40logger{39} : %m%n"
+
+
+
