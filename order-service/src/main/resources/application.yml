@@ -1,10 +1,23 @@
 spring:
+  # 让启动参数来决定激活哪个profile
+  profiles:
+    active: dev
   application:
     name: order-service
   cloud:
     nacos:
       discovery:
+        namespace: dev
         server-addr: 127.0.0.1:8848
+      config:
+        namespace: dev
+        server-addr: 127.0.0.1:8848
+        preference: remote
+  config:
+    import[0]:
+      nacos:order-service-dev.yaml?group=dev&refreshEnabled=true
+    import[1]:
+      nacos:shared-dev.yaml?group=dev&refreshEnabled=true
 server:
   port: 9003
 

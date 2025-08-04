@@ -30,6 +30,7 @@
         <bridge-brave.version>1.5.2</bridge-brave.version>
         <reporter-brave.version>3.4.3</reporter-brave.version>
         <nacos-config.version>2023.0.3.3</nacos-config.version>
+        <bootstrap.version>4.3.0</bootstrap.version>
     </properties>
 
     <dependencies>
@@ -113,7 +114,14 @@
                 <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
                 <version>${nacos-config.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-bootstrap</artifactId>
+                <version>${bootstrap.version}</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
 </project>

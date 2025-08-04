@@ -1,6 +1,9 @@
-spring:
-  cloud:
-    nacos:
-      discovery:
-        # 命名空间 ID
-        namespace: dev
+#spring:
+#  cloud:
+#    nacos:
+#      discovery:
+#        # 命名空间 ID
+#        namespace: dev
+#      config:
+#        namespace: dev
+#        group: dev
