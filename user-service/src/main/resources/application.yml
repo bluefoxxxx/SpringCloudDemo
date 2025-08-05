@@ -20,6 +20,11 @@ spring:
   config:
     import:
       nacos:shared-dev.yaml?group=dev&refreshEnabled=true
+  data:
+    redis:
+      password: 1234
+      host: 192.168.220.128
+      port: 6379
 server:
   port: 9001
 
