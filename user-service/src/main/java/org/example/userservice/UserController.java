@@ -20,7 +20,8 @@ public class UserController {
     public Map<String, Object> getUserById(
             @PathVariable("id") Long id,
             @RequestHeader(name = "X-User-ID", required = false) String userIdHeader,
-            @RequestHeader(name = "X-Request-ID", required = false) String requestIdHeader) {
+            @RequestHeader(name = "X-Request-ID", required = false) String requestIdHeader,
+            @RequestHeader(name = "X-User-Role", required = false) String userRole) {
 
         log.info("成功接收到获取用户信息的请求, 用户ID: {}", id);
 
@@ -28,12 +29,14 @@ public class UserController {
         System.out.println("Received call for user ID: " + id);
         System.out.println("Received header [X-User-ID]: " + userIdHeader);
         System.out.println("Received header [X-Request-ID]: " + requestIdHeader);
+        System.out.println("Received header [X-User-Role]: " + userRole);
         System.out.println("============================================================");
 
         Map<String, Object> user = new HashMap<>();
         user.put("id", id);
         user.put("name", "张三");
         user.put("level", "黄金会员");
+        user.put("role", userRole);
         return user;
     }
 
