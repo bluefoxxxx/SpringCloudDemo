@@ -1,10 +1,20 @@
 spring:
+  profiles:
+    active: dev
   application:
     name: product-service
   cloud:
     nacos:
       discovery:
+        namespace: dev
         server-addr: 127.0.0.1:8848
+      config:
+        namespace: dev
+        server-addr: 127.0.0.1:8848
+        preference: remote
+  config:
+    import:
+      nacos:shared-dev.yaml?group=dev&refreshEnabled=true
 server:
   port: 9002
 

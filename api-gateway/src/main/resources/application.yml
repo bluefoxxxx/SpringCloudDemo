@@ -2,12 +2,19 @@ server:
   port: 8001
 
 spring:
+  profiles:
+    active: dev
   application:
     name: api-gateway
   cloud:
     nacos:
       discovery:
+        namespace: dev
         server-addr: 127.0.0.1:8848
+      config:
+        namespace: dev
+        server-addr: 127.0.0.1:8848
+        preference: remote
     gateway:
       # 网关开启路由
       server:
@@ -51,6 +58,9 @@ spring:
                 - StripPrefix=1
                 # 关键：路径重写过滤器，将 /users/{id} 重写为 /v2/users/{id}
                 - RewritePath=/users/(?<segment>.*), /v2/users/$\{segment}
+  config:
+    import:
+      nacos:shared-dev.yaml?group=dev&refreshEnabled=true
   # 配置Redis地址，用于限流
   data:
     redis:
