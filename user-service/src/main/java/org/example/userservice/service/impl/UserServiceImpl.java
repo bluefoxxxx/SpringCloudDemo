@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.userservice.dao.entity.UserDO;
 import org.example.userservice.dao.mapper.UserMapper;
 import org.example.userservice.service.UserService;
+import org.example.userservice.util.NullValue;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -27,8 +28,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private static final String CACHE_KEY_PREFIX = "user:";
     private static final String LOCK_KEY_PREFIX = "lock:user:";
-    private static final long CACHE_NULL_TTL = 2;
-    private static final long CACHE_TTL = 30;
+    private static final long CACHE_NULL_TTL = 2;   // null对象过期时间（分钟）
+    private static final long CACHE_TTL = 30;       // 正常对象过期时间（分钟）
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -46,7 +47,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         // 1. 从缓存获取数据
         Object cachedUser = redisTemplate.opsForValue().get(key);
         if (cachedUser != null) {
-            if ("null".equals(cachedUser)) {
+            if (cachedUser instanceof NullValue) {
                 log.info("Cache hit for null user: {}", id);
                 return null;
             }
@@ -81,9 +82,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                     log.info("Cache rebuilt for user: {}", id);
                     return userMap;
                 } else {
-                    // 解决缓存穿透：数据库中不存在，缓存一个空值
-                    redisTemplate.opsForValue().set(key, "null", CACHE_NULL_TTL, TimeUnit.MINUTES);
-                    log.warn("User not found in DB, caching null value for ID: {}", id);
+                    // 解决缓存穿透：缓存空值对象
+                    redisTemplate.opsForValue().set(key, NullValue.INSTANCE, CACHE_NULL_TTL, TimeUnit.MINUTES);
+                    log.warn("User not found in DB, caching NullValue for ID: {}", id);
                     return null;
                 }
             } else {
@@ -105,3 +106,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
     }
 }
+

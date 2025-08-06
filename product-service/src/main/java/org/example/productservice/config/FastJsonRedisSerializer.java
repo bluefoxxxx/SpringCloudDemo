@@ -16,7 +16,8 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
 
     static final Filter AUTO_TYPE_FILTER = JSONReader.autoTypeFilter(
             // 按需加上需要支持自动类型的类名前缀，范围越小越安全
-            "org.example.userservice.dao.entity"
+            "org.example.productservice.dao.entity",
+            "org.example.productservice.util"
     );
 
     private final Class<T> clazz;
