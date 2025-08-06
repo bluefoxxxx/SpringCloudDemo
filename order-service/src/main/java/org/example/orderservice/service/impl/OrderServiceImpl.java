@@ -1,7 +1,10 @@
 package org.example.orderservice.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.micrometer.context.ContextSnapshot;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.example.orderservice.OrderController;
 import org.example.orderservice.dao.entity.OrderDO;
 import org.example.orderservice.dao.entity.OrderItemDO;
@@ -13,6 +16,7 @@ import org.example.orderservice.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -41,7 +45,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Autowired
     private OrderItemService orderItemService;
 
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
+
+    private static final String ORDER_STATUS_TOPIC = "ORDER_STATUS_TOPIC";
+
 
     @Override
     public Map<String, Object> getOrderById(Long id) {
@@ -111,5 +121,26 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         aggregatedOrder.put("products", productFutures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
 
         return aggregatedOrder;
+    }
+
+    @Override
+    public void updateOrderStatus(Long orderId, String status) {
+
+        Map<String, Object> messagePayload = Map.of(
+                "orderId", orderId,
+                "status", status,
+                "timestamp", System.currentTimeMillis()
+        );
+
+        String messageBody = JSON.toJSONString(messagePayload);
+
+        SendResult sendResult = rocketMQTemplate.syncSendOrderly(
+                ORDER_STATUS_TOPIC,
+                MessageBuilder.withPayload(messageBody).build(),
+                String.valueOf(orderId) // 使用订单ID作为shardingKey
+        );
+
+        log.info("顺序消息发送成功! Topic: {}, Body: {}, SendResult: {}",
+                ORDER_STATUS_TOPIC, messageBody, sendResult);
     }
 }

@@ -42,5 +42,9 @@ logging:
   pattern:
     console: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}] %-40.40logger{39} : %m%n"
 
+rocketmq:
+  name-server: 192.168.220.128:9876
+  producer:
+    group: order-service-producer-group
 
 

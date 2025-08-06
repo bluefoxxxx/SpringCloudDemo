@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -41,4 +42,9 @@ public class OrderController {
         return configInfo;
     }
 
+    @PostMapping("/orders/{orderId}/status/{status}")
+    public String updateOrderStatus(@PathVariable("orderId") Long orderId, @PathVariable("status") String status) {
+        orderService.updateOrderStatus(orderId, status);
+        return "Status update message for order " + orderId + " has been sent.";
+    }
 }
