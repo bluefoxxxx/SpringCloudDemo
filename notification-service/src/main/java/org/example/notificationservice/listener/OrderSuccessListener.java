@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RocketMQMessageListener(
         topic = "ORDER_SUCCESS_TOPIC", // 订阅下单成功主题
-        consumerGroup = "notification-consumer-group"
+        consumerGroup = "notification-consumer-group",
+        maxReconsumeTimes = 3 // 最大重试次数3次，实际是消费次数是首次 1 + 重试 3 共 4 次
 )
 public class OrderSuccessListener implements RocketMQListener<String> {
 
@@ -25,10 +26,18 @@ public class OrderSuccessListener implements RocketMQListener<String> {
 
     @Override
     public void onMessage(String message) {
+
         log.info("接收到下单成功消息: {}", message);
 
         // 解析消息，获取订单ID作为唯一业务ID
         JSONObject messageBody = JSON.parseObject(message);
+
+        // 包含毒丸消息，手动抛出异常，模拟消费失败
+        if (messageBody.getBooleanValue("poison", false)) {
+            log.error("【毒丸消息】检测到毒丸消息，将抛出异常以触发重试: {}", message);
+            throw new RuntimeException("Encountered a poison pill message!");
+        }
+
         String orderId = messageBody.getString("orderId");
 
         // 如果元素是第一次加入，返回 1；如果元素已存在，返回 0

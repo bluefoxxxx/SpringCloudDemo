@@ -20,4 +20,6 @@ public interface OrderService extends IService<OrderDO> {
      * 创建订单
      */
     String createOrder(CreateOrderReqDTO request);
+
+    String sendPoisonPillMessage();
 }

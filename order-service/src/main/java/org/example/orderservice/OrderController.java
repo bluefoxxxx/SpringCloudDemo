@@ -52,4 +52,9 @@ public class OrderController {
         return "Order created successfully with ID: " + orderId;
     }
 
+    // 专门发送毒丸消息
+    @PostMapping("/orders/poison-pill")
+    public String sendPoisonPillMessage() {
+        return orderService.sendPoisonPillMessage();
+    }
 }

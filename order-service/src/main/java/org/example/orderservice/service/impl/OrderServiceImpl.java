@@ -180,4 +180,23 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return orderId;
     }
 
+    @Override
+    public String sendPoisonPillMessage() {
+
+        String topic = "ORDER_SUCCESS_TOPIC";
+        // 构造一条包含 "poison": true 的消息
+        Map<String, Object> payload = Map.of(
+                "orderId", "poison-order-" + System.currentTimeMillis(),
+                "userId", "poison-user",
+                "poison", true // 毒丸标记
+        );
+        String messageBody = JSON.toJSONString(payload);
+
+        rocketMQTemplate.convertAndSend(topic, messageBody);
+
+        String logMessage = "已发送“毒丸”消息到 Topic: " + topic;
+        log.info(logMessage);
+        return logMessage;
+    }
+
 }
