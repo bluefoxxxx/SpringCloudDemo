@@ -2,6 +2,7 @@ package org.example.orderservice.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.orderservice.dao.entity.OrderDO;
+import org.example.orderservice.dto.req.CreateOrderReqDTO;
 
 import java.util.Map;
 
@@ -14,4 +15,9 @@ public interface OrderService extends IService<OrderDO> {
      * @param status 目标状态
      */
     void updateOrderStatus(Long orderId, String status);
+
+    /**
+     * 创建订单
+     */
+    String createOrder(CreateOrderReqDTO request);
 }

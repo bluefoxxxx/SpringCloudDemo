@@ -9,6 +9,7 @@ import org.example.orderservice.OrderController;
 import org.example.orderservice.dao.entity.OrderDO;
 import org.example.orderservice.dao.entity.OrderItemDO;
 import org.example.orderservice.dao.mapper.OrderMapper;
+import org.example.orderservice.dto.req.CreateOrderReqDTO;
 import org.example.orderservice.feign.ProductFeignClient;
 import org.example.orderservice.feign.UserFeignClient;
 import org.example.orderservice.service.OrderItemService;
@@ -52,6 +53,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     private static final String ORDER_STATUS_TOPIC = "ORDER_STATUS_TOPIC";
 
+    private static final String ORDER_SUCCESS_TOPIC = "ORDER_SUCCESS_TOPIC";
 
     @Override
     public Map<String, Object> getOrderById(Long id) {
@@ -143,4 +145,27 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         log.info("顺序消息发送成功! Topic: {}, Body: {}, SendResult: {}",
                 ORDER_STATUS_TOPIC, messageBody, sendResult);
     }
+
+    @Override
+    public String createOrder(CreateOrderReqDTO request) {
+        // TODO 改为实际业务逻辑，存入数据库并返回ID
+        String orderId = request.getOrderId(); // 使用手动传入的 orderId
+        String userId = request.getUserId();
+        String productId = request.getProductId();
+        log.info("用户 {} 为产品 {} 创建了新订单，订单号: {}", userId, productId, orderId);
+
+        Map<String, Object> payload = Map.of(
+                "orderId", orderId,
+                "userId", userId,
+                "productId", productId
+        );
+        String messageBody = JSON.toJSONString(payload);
+
+        // 发送普通消息到 ORDER_SUCCESS_TOPIC
+        rocketMQTemplate.convertAndSend(ORDER_SUCCESS_TOPIC, messageBody);
+        log.info("成功发送下单成功消息到 Topic: {}, Body: {}", ORDER_SUCCESS_TOPIC, messageBody);
+
+        return orderId;
+    }
+
 }

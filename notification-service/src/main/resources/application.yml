@@ -1,0 +1,18 @@
+server:
+  port: 9006
+spring:
+  application:
+    name: notification-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: dev
+  data:
+    redis:
+      host: 192.168.220.128
+      port: 6379
+      password: 1234
+
+rocketmq:
+  name-server: 192.168.220.128:9876

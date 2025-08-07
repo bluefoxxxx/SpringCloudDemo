@@ -2,15 +2,13 @@ package org.example.orderservice;
 
 
 import org.example.orderservice.config.OrderProperties;
+import org.example.orderservice.dto.req.CreateOrderReqDTO;
 import org.example.orderservice.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -47,4 +45,11 @@ public class OrderController {
         orderService.updateOrderStatus(orderId, status);
         return "Status update message for order " + orderId + " has been sent.";
     }
+
+    @PostMapping("/orders")
+    public String createOrder(@RequestBody CreateOrderReqDTO request) {
+        String orderId = orderService.createOrder(request);
+        return "Order created successfully with ID: " + orderId;
+    }
+
 }
