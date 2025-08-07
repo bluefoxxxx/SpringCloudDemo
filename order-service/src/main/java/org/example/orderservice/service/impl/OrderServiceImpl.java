@@ -17,6 +17,7 @@ import org.example.orderservice.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
@@ -54,6 +55,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private static final String ORDER_STATUS_TOPIC = "ORDER_STATUS_TOPIC";
 
     private static final String ORDER_SUCCESS_TOPIC = "ORDER_SUCCESS_TOPIC";
+
+    private static final String ORDER_TIMEOUT_CANCEL_TOPIC = "ORDER_TIMEOUT_CANCEL_TOPIC"; // 消息延迟主题
 
     @Override
     public Map<String, Object> getOrderById(Long id) {
@@ -164,6 +167,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         // 发送普通消息到 ORDER_SUCCESS_TOPIC
         rocketMQTemplate.convertAndSend(ORDER_SUCCESS_TOPIC, messageBody);
         log.info("成功发送下单成功消息到 Topic: {}, Body: {}", ORDER_SUCCESS_TOPIC, messageBody);
+
+        Message<String> delayMessage = MessageBuilder.withPayload(messageBody).build();
+
+        int delayLevel = 3; // 1s 5s 10s 30s
+
+        SendResult sendResult = rocketMQTemplate.syncSend(ORDER_TIMEOUT_CANCEL_TOPIC, delayMessage, 3000, delayLevel);
+
+        log.info("成功发送订单超时延迟消息, Topic: {}, Body: {}, DelayLevel: {}, SendResult: {}",
+                ORDER_TIMEOUT_CANCEL_TOPIC, messageBody, delayLevel, sendResult);
 
         return orderId;
     }
