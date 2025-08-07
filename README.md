@@ -36,9 +36,9 @@
 
 ### 前提条件
 
-- JDK 1.8+
+- JDK 21
 - Maven 3.x
-- Spring Boot 2.x
+- Spring Boot 3.x
 - Nacos Server
 - RocketMQ Server
 - Redis Server
