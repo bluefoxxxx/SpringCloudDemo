@@ -1,0 +1,269 @@
+version: '3.8'
+
+networks:
+  # 创建一个自定义的桥接网络，让所有容器在这个网络中，可以通过服务名互相访问
+  mynet:
+    driver: bridge
+
+volumes:
+  # 声明需要持久化的数据卷
+  mysql_data:
+  redis_data:
+  nacos_data:
+  nacos_logs:
+  rocketmq_logs:
+  rocketmq_store:
+
+services:
+  # --- 基础设施服务 ---
+
+  # MySQL 服务
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    networks:
+      - mynet
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 挂载sql脚本
+      - ./init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=springcloud_demo
+
+  # Redis 服务
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - mynet
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass 1234
+
+  # Nacos 服务
+  nacos:
+    image: nacos/nacos-server
+    container_name: nacos
+    networks:
+      - mynet
+    ports:
+      - "8848:8848"
+      - "8080:8080"
+    volumes:
+      - nacos_data:/home/nacos/data
+      - nacos_logs:/home/nacos/logs
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone # 单机模式
+      - NACOS_AUTH_TOKEN=qF9MBkdTFML+2pu8QUXXQ6UPdKVHlOp4S86qkLpCPbs=
+      - NACOS_AUTH_IDENTITY_KEY=root
+      - NACOS_AUTH_IDENTITY_VALUE=1234
+    healthcheck:
+      # 命令：使用curl工具请求nacos的健康状态API
+      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos" ]
+      interval: 5s     # 每5秒检查一次
+      timeout: 10s     # 每次检查的超时时间为10秒
+      retries: 30      # 连续30次失败后，才将容器标记为unhealthy
+      start_period: 30s # 容器启动后，延迟30秒再开始第一次健康检查，给足Nacos启动时间
+  # RocketMQ NameServer 服务
+  rocketmq-nameserver:
+    image: apache/rocketmq
+    container_name: rmqnamesrv
+    networks:
+      - mynet
+    ports:
+      - "9876:9876"
+    command: sh mqnamesrv
+
+  # RocketMQ Broker 服务
+  rocketmq-broker:
+    image: apache/rocketmq
+    container_name: rmqbroker
+    networks:
+      - mynet
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    volumes:
+      - rocketmq_logs:/root/logs
+      - rocketmq_store:/root/store
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+    command: sh mqbroker -n rmqnamesrv:9876 autoCreateTopicEnable=true
+    depends_on:
+      - rocketmq-nameserver
+  # RocketMQ Console 服务
+  rocketmq-console:
+    image: styletang/rocketmq-console-ng:latest
+    container_name: rocketmq-console
+    networks:
+      - mynet
+    ports:
+      # (因为8080端口我们已经给了Nacos Console，所以这里用8088以避免冲突)
+      - "8088:8080"
+    environment:
+      # 地址是我们在Compose中定义的服务名 rmqnamesrv
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876
+    depends_on:
+      - rocketmq-nameserver
+      - rocketmq-broker
+  # Zipkin 服务
+  zipkin:
+    image: openzipkin/zipkin # 使用官方镜像
+    container_name: zipkin
+    networks:
+      - mynet
+    ports:
+      - "9411:9411" # 映射 Zipkin 的默认端口
+
+  # --- 应用微服务 ---
+
+  # API Gateway 服务
+  api-gateway:
+    build: ./api-gateway # 指定Dockerfile所在目录
+    container_name: api-gateway
+    networks:
+      - mynet
+    ports:
+      - "8001:8001"
+    # 使用 command 指令来覆盖 Dockerfile 中的 ENTRYPOINT
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      # 使用服务名连接Nacos
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_DATA_REDIS_HOST=redis # 使用服务名连接Redis
+    depends_on:
+      nacos:
+        condition: service_healthy
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    networks:
+      - mynet
+    ports:
+      - "9001:9001"
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/springcloud_demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai # 使用服务名连接MySQL
+      - SPRING_DATA_REDIS_HOST=redis
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_started
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      zipkin:
+        condition: service_started
+
+  # Product Service
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    networks:
+      - mynet
+    ports:
+      - "9002:9002"
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/springcloud_demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      - SPRING_DATA_REDIS_HOST=redis
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_started
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      zipkin:
+        condition: service_started
+
+  # Order Service
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    networks:
+      - mynet
+    ports:
+      - "9003:9003"
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/springcloud_demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      - ROCKETMQ_NAME_SERVER=rocketmq-nameserver:9876 # 使用服务名连接RocketMQ
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      mysql:
+        condition: service_started
+      nacos:
+        condition: service_healthy
+      rocketmq-nameserver:
+        condition: service_started
+      rocketmq-broker:
+        condition: service_started
+      zipkin:
+        condition: service_started
+
+  # Notification Service
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    networks:
+      - mynet
+    ports:
+      - "9006:9006"
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_DATA_REDIS_HOST=redis
+      - ROCKETMQ_NAME_SERVER=rocketmq-nameserver:9876
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rocketmq-nameserver:
+        condition: service_started
+      rocketmq-broker:
+        condition: service_started
+
+  # Order Log Service
+  order-log-service:
+    build: ./order-log-service
+    container_name: order-log-service
+    networks:
+      - mynet
+    ports:
+      - "9005:9005"
+    command: sh -c "until nc -z nacos 8848; do echo 'waiting for nacos...'; sleep 2; done && java -Dnacos.logging.default.config.enabled=false -jar /app.jar"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - ROCKETMQ_NAME_SERVER=rocketmq-nameserver:9876
+    depends_on:
+      nacos:
+        condition: service_healthy
+      rocketmq-nameserver:
+        condition: service_started
+      rocketmq-broker:
+        condition: service_started
