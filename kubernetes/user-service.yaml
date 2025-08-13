@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service-container
+        image: user-service:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9001
+        env:
+        - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR
+          value: "nacos:8848"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://192.168.220.132:3306/springcloud_demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
+        - name: SPRING_DATA_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: middleware-config   # 指定ConfigMap的名字
+              key: REDIS_HOST          # 指定要读取的键 (key)
+        - name: SPRING_DATA_REDIS_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: middleware-config
+              key: REDIS_PASSWORD
+        - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: middleware-config
+              key: ZIPKIN_ENDPOINT
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+  - protocol: TCP
+    port: 9001
+    targetPort: 9001

@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos
+spec:
+  selector:
+    app: nacos
+  ports:
+  - name: api
+    port: 8848
+    targetPort: 8848
+  - name: ui
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nacos-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nacos
+  template:
+    metadata:
+      labels:
+        app: nacos
+    spec:
+      containers:
+      - name: nacos-container
+        image: nacos/nacos-server:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MODE
+          value: "standalone"
+        - name: NACOS_AUTH_TOKEN
+          value: "qF9MBkdTFML+2pu8QUXXQ6UPdKVHlOp4S86qkLpCPbs="
+        - name: NACOS_AUTH_IDENTITY_KEY
+          value: "root"
+        - name: NACOS_AUTH_IDENTITY_VALUE
+          value: "1234"
+        # 限制Nacos的JVM内存，防止在Minikube中因内存不足而崩溃
+        - name: JAVA_OPTS 
+          value: "-Xms512m -Xmx512m -Djava.security.egd=file:/dev/./urandom"
+        ports:
+        - containerPort: 8848
+        - containerPort: 8080

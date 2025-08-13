@@ -1,0 +1,108 @@
+# --- RocketMQ NameServer ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rmqnamesrv
+spec:
+  selector:
+    app: rmqnamesrv
+  ports:
+  - port: 9876
+    targetPort: 9876
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rmqnamesrv-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rmqnamesrv
+  template:
+    metadata:
+      labels:
+        app: rmqnamesrv
+    spec:
+      containers:
+      - name: rmqnamesrv
+        image: apache/rocketmq:latest
+        command: ["sh", "mqnamesrv"]
+        ports:
+        - containerPort: 9876
+---
+# --- RocketMQ Broker ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rmqbroker
+spec:
+  selector:
+    app: rmqbroker
+  ports:
+  - name: "broker-a"
+    port: 10911
+    targetPort: 10911
+  - name: "broker-b"
+    port: 10909
+    targetPort: 10909
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rmqbroker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rmqbroker
+  template:
+    metadata:
+      labels:
+        app: rmqbroker
+    spec:
+      containers:
+      - name: rmqbroker
+        image: apache/rocketmq:latest
+        command: ["sh", "mqbroker", "-n", "rmqnamesrv:9876", "autoCreateTopicEnable=true"]
+        ports:
+        - containerPort: 10911
+        - containerPort: 10909
+---
+# --- RocketMQ Console ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rmqconsole
+spec:
+  selector:
+    app: rmqconsole
+  # 使用NodePort可以在集群外部访问UI
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30088 # 固定一个端口方便访问
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rmqconsole-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rmqconsole
+  template:
+    metadata:
+      labels:
+        app: rmqconsole
+    spec:
+      containers:
+      - name: rmqconsole
+        image: styletang/rocketmq-console-ng:latest
+        env:
+        - name: JAVA_OPTS
+          value: "-Drocketmq.namesrv.addr=rmqnamesrv:9876"
+        ports:
+        - containerPort: 8080
