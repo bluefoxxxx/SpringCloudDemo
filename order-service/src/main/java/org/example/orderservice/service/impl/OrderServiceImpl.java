@@ -1,5 +1,6 @@
 package org.example.orderservice.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.micrometer.context.ContextSnapshot;
@@ -20,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,34 +153,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     }
 
     @Override
+    @Transactional
     public String createOrder(CreateOrderReqDTO request) {
-        // TODO 改为实际业务逻辑，存入数据库并返回ID
-        String orderId = request.getOrderId(); // 使用手动传入的 orderId
-        String userId = request.getUserId();
-        String productId = request.getProductId();
-        log.info("用户 {} 为产品 {} 创建了新订单，订单号: {}", userId, productId, orderId);
+        OrderDO order = new OrderDO();
+        order.setUserId(Long.parseLong(request.getUserId()));
+        // 使用 Hutool 生成一个唯一订单号
+        String orderNo = IdUtil.simpleUUID();
+        order.setOrderNo(orderNo);
+        order.setCreateTime(LocalDateTime.now());
+        baseMapper.insert(order);
 
+        //创建订单项记录
+        OrderItemDO orderItem = new OrderItemDO();
+        orderItem.setOrderId(order.getId());
+        orderItem.setProductId(Long.parseLong(request.getProductId()));
+        orderItemService.save(orderItem);
+
+        Long orderId = order.getId();
+        log.info("用户 {} 为产品 {} 创建了新订单，订单ID: {}, 订单号: {}", request.getUserId(), request.getProductId(), orderId, orderNo);
+
+        //
         Map<String, Object> payload = Map.of(
-                "orderId", orderId,
-                "userId", userId,
-                "productId", productId
+                "orderId", String.valueOf(orderId),
+                "userId", request.getUserId(),
+                "productId", request.getProductId()
         );
         String messageBody = JSON.toJSONString(payload);
 
-        // 发送普通消息到 ORDER_SUCCESS_TOPIC
+        //发送普通消息
         rocketMQTemplate.convertAndSend(ORDER_SUCCESS_TOPIC, messageBody);
         log.info("成功发送下单成功消息到 Topic: {}, Body: {}", ORDER_SUCCESS_TOPIC, messageBody);
 
+        // 发送延迟消息
         Message<String> delayMessage = MessageBuilder.withPayload(messageBody).build();
-
-        int delayLevel = 3; // 1s 5s 10s 30s
-
+        // level = 3 10s
+        int delayLevel = 3;
         SendResult sendResult = rocketMQTemplate.syncSend(ORDER_TIMEOUT_CANCEL_TOPIC, delayMessage, 3000, delayLevel);
 
         log.info("成功发送订单超时延迟消息, Topic: {}, Body: {}, DelayLevel: {}, SendResult: {}",
                 ORDER_TIMEOUT_CANCEL_TOPIC, messageBody, delayLevel, sendResult);
 
-        return orderId;
+        // 返回新创建的订单ID
+        return String.valueOf(orderId);
     }
 
     @Override
