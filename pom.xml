@@ -28,6 +28,7 @@
         <spring-cloud-starter-loadbalancer.version>4.3.0</spring-cloud-starter-loadbalancer.version>
         <spring-cloud-starter-openfeign.version>4.3.0</spring-cloud-starter-openfeign.version>
         <spring-cloud-starter-gateway-server-webflux.version>5.0.0-M1</spring-cloud-starter-gateway-server-webflux.version>
+        <spring-boot-starter-aop.version>3.5.3</spring-boot-starter-aop.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
         <nacos-discovery.version>2023.0.3.3</nacos-discovery.version>
@@ -198,6 +199,12 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
                 <version>${spring-cloud-starter-gateway-server-webflux.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-aop</artifactId>
+                <version>${spring-boot-starter-aop.version}</version>
             </dependency>
         </dependencies>
 
