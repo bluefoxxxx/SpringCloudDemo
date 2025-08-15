@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.micrometer.context.ContextSnapshot;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.example.orderservice.OrderController;
+import org.example.orderservice.controller.OrderController;
+import org.example.orderservice.convention.errorcode.BaseErrorCode;
+import org.example.orderservice.convention.exception.ClientException;
+import org.example.orderservice.convention.exception.ServiceException;
 import org.example.orderservice.dao.entity.OrderDO;
 import org.example.orderservice.dao.entity.OrderItemDO;
 import org.example.orderservice.dao.mapper.OrderMapper;
@@ -67,7 +70,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         OrderDO order = baseMapper.selectById(id);
         if (order == null) {
             log.warn("查询的订单不存在, 订单ID: {}", id);
-            return null;
+            throw new ClientException(BaseErrorCode.CLIENT_ERROR.message(), BaseErrorCode.CLIENT_ERROR);
         }
 
         // 2. 从数据库查询该订单关联的所有订单项
@@ -94,7 +97,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 Callable<Map<String, Object>> wrappedUserCallable = snapshot.wrap(userCallable);
                 return wrappedUserCallable.call();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new ClientException("用户服务调用失败", e, BaseErrorCode.REMOTE_ERROR);
             } finally {
                 // 2.3 手动清理 RequestContextHolder
                 RequestContextHolder.resetRequestAttributes();
@@ -110,7 +113,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                         Callable<Map<String, Object>> wrappedProductCallable = snapshot.wrap(productCallable);
                         return wrappedProductCallable.call();
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new ClientException("产品服务调用失败", e, BaseErrorCode.REMOTE_ERROR);
                     } finally {
                         RequestContextHolder.resetRequestAttributes();
                     }
@@ -124,7 +127,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         try {
             aggregatedOrder.put("user", userFuture.get());
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new ServiceException("聚合订单结果失败", e, BaseErrorCode.SERVICE_ERROR);
         }
         aggregatedOrder.put("products", productFutures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
 
