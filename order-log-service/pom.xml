@@ -44,13 +44,11 @@
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
-            <version>2.3.4</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
-            <version>2.0.58</version>
         </dependency>
     </dependencies>
 
