@@ -1,5 +1,7 @@
 package org.example.productservice;
 
+import convention.result.Result;
+import convention.result.Results;
 import org.example.productservice.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,7 @@ public class ProductController {
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @GetMapping("/products/{id}")
-    public Map<String, Object> getProductById(@PathVariable("id") Long id) {
-        return productService.getProductById(id);
+    public Result<Map<String, Object>> getProductById(@PathVariable("id") Long id) {
+        return Results.success(productService.getProductById(id));
     }
 }

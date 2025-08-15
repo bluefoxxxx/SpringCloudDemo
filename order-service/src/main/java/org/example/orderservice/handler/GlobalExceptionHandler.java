@@ -1,9 +1,9 @@
 package org.example.orderservice.handler;
 
 
-import org.example.orderservice.convention.exception.AbstractException;
-import org.example.orderservice.convention.result.Result;
-import org.example.orderservice.convention.result.Results;
+import convention.exception.AbstractException;
+import convention.result.Result;
+import convention.result.Results;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;

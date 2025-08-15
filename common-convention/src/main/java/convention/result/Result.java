@@ -1,4 +1,4 @@
-package org.example.orderservice.convention.result;
+package convention.result;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -1,4 +1,4 @@
-package org.example.orderservice.convention.errorcode;
+package convention.errorcode;
 
 /**
  * 基础错误码定义

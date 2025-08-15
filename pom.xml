@@ -11,6 +11,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>common-convention</module>
         <module>user-service</module>
         <module>product-service</module>
         <module>order-service</module>
@@ -205,6 +206,11 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-aop</artifactId>
                 <version>${spring-boot-starter-aop.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>common-convention</artifactId>
             </dependency>
         </dependencies>
 

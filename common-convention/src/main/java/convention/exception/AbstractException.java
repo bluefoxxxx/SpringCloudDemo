@@ -1,8 +1,8 @@
-package org.example.orderservice.convention.exception;
+package convention.exception;
 
 
+import convention.errorcode.IErrorCode;
 import lombok.Getter;
-import org.example.orderservice.convention.errorcode.IErrorCode;
 import org.springframework.util.StringUtils;
 
 import java.util.Optional;

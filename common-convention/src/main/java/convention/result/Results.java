@@ -1,8 +1,8 @@
-package org.example.orderservice.convention.result;
+package convention.result;
 
 
-import org.example.orderservice.convention.errorcode.BaseErrorCode;
-import org.example.orderservice.convention.exception.AbstractException;
+import convention.errorcode.BaseErrorCode;
+import convention.exception.AbstractException;
 
 import java.util.Optional;
 

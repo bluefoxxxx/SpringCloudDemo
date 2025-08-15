@@ -1,9 +1,9 @@
 package org.example.orderservice.controller;
 
 
+import convention.result.Result;
+import convention.result.Results;
 import org.example.orderservice.config.OrderProperties;
-import org.example.orderservice.convention.result.Result;
-import org.example.orderservice.convention.result.Results;
 import org.example.orderservice.dto.req.CreateOrderReqDTO;
 import org.example.orderservice.service.OrderService;
 import org.slf4j.Logger;

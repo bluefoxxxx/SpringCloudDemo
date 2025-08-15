@@ -1,8 +1,8 @@
-package org.example.orderservice.convention.exception;
+package convention.exception;
 
 
-import org.example.orderservice.convention.errorcode.BaseErrorCode;
-import org.example.orderservice.convention.errorcode.IErrorCode;
+import convention.errorcode.BaseErrorCode;
+import convention.errorcode.IErrorCode;
 
 /**
  * 客户端异常
