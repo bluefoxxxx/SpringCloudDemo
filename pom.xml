@@ -30,6 +30,7 @@
         <spring-cloud-starter-openfeign.version>4.3.0</spring-cloud-starter-openfeign.version>
         <spring-cloud-starter-gateway-server-webflux.version>5.0.0-M1</spring-cloud-starter-gateway-server-webflux.version>
         <spring-boot-starter-aop.version>3.5.3</spring-boot-starter-aop.version>
+        <spring-cloud-starter-alibaba-sentinel.version>2023.0.3.3</spring-cloud-starter-alibaba-sentinel.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
         <nacos-discovery.version>2023.0.3.3</nacos-discovery.version>
@@ -46,6 +47,7 @@
         <rocketmq-spring-boot-starter.version>2.3.4</rocketmq-spring-boot-starter.version>
         <feign-micrometer.version>13.6</feign-micrometer.version>
         <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
+        <sentinel-parameter-flow-control.version>1.8.8</sentinel-parameter-flow-control.version>
     </properties>
 
     <dependencies>
@@ -211,6 +213,18 @@
             <dependency>
                 <groupId>org.example</groupId>
                 <artifactId>common-convention</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+                <version>${spring-cloud-starter-alibaba-sentinel.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-parameter-flow-control</artifactId>
+                <version>${sentinel-parameter-flow-control.version}</version>
             </dependency>
         </dependencies>
 

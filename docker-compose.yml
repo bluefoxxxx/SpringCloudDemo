@@ -143,6 +143,18 @@ services:
       nacos:
         condition: service_healthy
 
+  # Sentinel Dashboard 服务
+  sentinel-dashboard:
+    image: bladex/sentinel-dashboard
+    container_name: sentinel-dashboard
+    networks:
+      - mynet
+    ports:
+      - "8858:8858"
+    environment:
+      - SENTINEL_USERNAME=sentinel
+      - SENTINEL_PASSWORD=sentinel
+      - JAVA_OPTS=-Xms256m -Xmx256m
   # User Service
   user-service:
     build: ./user-service

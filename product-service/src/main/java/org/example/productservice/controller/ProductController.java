@@ -1,5 +1,6 @@
-package org.example.productservice;
+package org.example.productservice.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import convention.result.Result;
 import convention.result.Results;
 import org.example.productservice.service.ProductService;
@@ -21,6 +22,11 @@ public class ProductController {
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @GetMapping("/products/{id}")
+    @SentinelResource(
+            value = "getProductById",
+            blockHandlerClass = ProductBlockHandler.class, // 处理阻塞的类
+            blockHandler = "handleGetProductByIdBlock" // 具体处理方法
+    )
     public Result<Map<String, Object>> getProductById(@PathVariable("id") Long id) {
         return Results.success(productService.getProductById(id));
     }
