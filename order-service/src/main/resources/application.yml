@@ -1,3 +1,6 @@
+feign:
+  sentinel:
+    enabled: true
 spring:
   datasource:
     url: jdbc:mysql://192.168.220.128:3306/springcloud_demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
@@ -17,6 +20,9 @@ spring:
         namespace: dev
         server-addr: 127.0.0.1:8848
         preference: remote
+    sentinel:
+      transport:
+        dashboard: 192.168.220.128:8858
   config:
     import[0]:
       nacos:order-service-dev.yaml?group=dev&refreshEnabled=true
