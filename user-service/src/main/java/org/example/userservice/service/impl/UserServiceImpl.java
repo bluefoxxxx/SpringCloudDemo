@@ -20,7 +20,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
-    @CacheLock(prefix = "user:", ttl = 30, unit = TimeUnit.MINUTES) // 核心改动点！
+    @CacheLock(prefix = "user:", ttl = 30, unit = TimeUnit.MINUTES)
     public Map<String, Object> selectById(Long id, String userIdHeader, String requestIdHeader, String userRole) {
         // AOP 将缓存和锁的逻辑透明地织入，业务代码只剩下最核心的数据库查询
         log.info("==================== DB QUERY (USER) via AOP ====================");
