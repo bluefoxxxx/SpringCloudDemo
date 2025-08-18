@@ -27,7 +27,7 @@ public class FeignClientConfiguration {
                         while (headerNames.hasMoreElements()) {
                             String name = headerNames.nextElement();
                             // 只透传特定Header和链路追踪相关的Header
-                            if (name.equalsIgnoreCase("X-User-ID") || name.equalsIgnoreCase("X-Request-ID")) {
+                            if (name.equalsIgnoreCase("X-User-ID") || name.equalsIgnoreCase("X-Request-ID") || name.equalsIgnoreCase("X-User-Role")) {
                                 String values = request.getHeader(name);
                                 template.header(name, values);
                             }
