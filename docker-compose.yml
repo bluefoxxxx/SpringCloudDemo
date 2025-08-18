@@ -155,6 +155,21 @@ services:
       - SENTINEL_USERNAME=sentinel
       - SENTINEL_PASSWORD=sentinel
       - JAVA_OPTS=-Xms256m -Xmx256m
+  # Keycloak 统一认证授权中心
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    networks:
+      - mynet
+    ports:
+      - "8080:8080" # Keycloak 默认使用 8080 端口
+    environment:
+      # 设置 Keycloak 管理员的用户名
+      - KEYCLOAK_ADMIN=admin
+      # 设置 Keycloak 管理员的密码
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    # 启动 Keycloak 的命令，dev模式用于快速启动
+    command: "start-dev"
   # User Service
   user-service:
     build: ./user-service
