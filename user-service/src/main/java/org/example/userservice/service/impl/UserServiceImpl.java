@@ -2,7 +2,6 @@ package org.example.userservice.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.userservice.aop.CacheLock;
-import org.example.userservice.convention.exception.ClientException;
 import org.example.userservice.dao.entity.UserDO;
 import org.example.userservice.dao.mapper.UserMapper;
 import org.example.userservice.service.UserService;
@@ -29,7 +28,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         // 用户不存在，抛出客户端异常
         if (user == null) {
-            throw new ClientException("用户不存在");
+            return null;
         }
 
         // 业务逻辑：将 DO 转换为 Map DTO
